@@ -35,4 +35,16 @@ Executive Summary: Project Ares is a production-grade, multi-service, three-tier
 - Sealed Secrets
 - AWS EBS
 ## Project Structure
+project-ares/
+├── frontend/               # React frontend service
+├── backend/                # Node.js backend API
+├── helm/                   # Helm charts for all services
+├── k8s/                    # Kubernetes manifests
+├── monitoring/             # Prometheus and Grafana configs
+│   ├── prometheus/
+│   └── grafana/
+└── docker-compose.yaml     # Local development orchestration
+
+
+
 
