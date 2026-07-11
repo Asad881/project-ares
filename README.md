@@ -21,5 +21,18 @@ Executive Summary: Project Ares is a production-grade, multi-service, three-tier
 
 ```
 ## Tech Stack
+**Application**
+- React
+- Node.js
+- MongoDB
+
+**Infrastructure**
+- Docker
+- Kubernetes
+- Helm
+- Prometheus
+- Grafana
+- Sealed Secrets
+- AWS EBS
 ## Project Structure
 
