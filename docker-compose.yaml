@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  
+  
+  ares-db:
+    image: mongo:latest
+    container_name: ares-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ares-network
+        
+    
+  
+  ares_backend:
+    build: ./backend
+    container_name: ares_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://ares-db:27017/ares_ecomerce
+    depends_on:
+      - ares-db
+    networks:
+      - ares_network
+
+  ares_frontend:
+    build: ./frontend 
+    container_name: ares_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:5000
+    networks:
+      - ares_network
+
+networks:
+    ares_network:
+      driver: bridge
+volumes:
+  mongo_data:
