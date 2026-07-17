@@ -1,8 +1,4 @@
-version: '3.8'
-
 services:
-  
-  
   ares-db:
     image: mongo:latest
     container_name: ares-db
@@ -11,9 +7,7 @@ services:
     volumes:
       - mongo_data:/data/db
     networks:
-      - ares-network
-        
-    
+      - ares_network
   
   ares_backend:
     build: ./backend
@@ -38,7 +32,8 @@ services:
       - ares_network
 
 networks:
-    ares_network:
-      driver: bridge
+  ares_network:
+    driver: bridge
+
 volumes:
   mongo_data:
