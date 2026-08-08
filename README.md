@@ -1,24 +1,16 @@
 # project-ares
 Multi-Service, Three-Tier E-Commerce Web Architecture
 
-Executive Summary: Project Ares is a production-grade, multi-service, three-tier e-commerce architecture — engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending. Each service (Frontend, Backend, Database) is independently deployable via Helm Charts, independently scalable, and independently recoverable. Persistent data survives pod failures through StatefulSets backed by AWS EBS storage. Secrets are cryptographically sealed — safe in public repositories. Real-time anomaly detection via Prometheus and Grafana catches performance degradation before it becomes downtime — reducing mean time to recovery from hours to seconds.
+Executive Summary: Project Ares is a production-grade, multi-service, three-tier e-commerce architecture — engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending. Each service (Frontend, Backend, Database) is independently deployable via Helm Charts, independently scalable, and independently recoverable. Persistent data survives pod failures through StatefulSets. Secrets are cryptographically sealed — safe in public repositories. Real-time anomaly detection via Prometheus and Grafana catches performance degradation before it becomes downtime — reducing mean time to recovery from hours to seconds.
 
 ## Architecture Diagram
 ```mermaid
-    graph TD
+graph TD
     A[User Browser] --> |Sends HTTP Request| B[Load Balancer]
     B --> |Routes Request| C[Frontend - React]
     C --> |Sends API Request| D[Backend - Node.js]
     D --> |Queries Data| E[Database - MongoDB]
-    E --> |Persists data| F[AWS EBS - Persistant Volume]
     E --> |Returns Response| A
-    G[Prometheus - Monitoring]
-    G -.-> |monitors|C
-    G -.-> |monitors|D
-    G -.-> |monitors|E
-    H[Sealed Secrets - Encrypted Config]
-    H -.->|provides credentials| D
-
 ```
 ## Tech Stack
 **Application**
@@ -30,21 +22,18 @@ Executive Summary: Project Ares is a production-grade, multi-service, three-tier
 - Docker
 - Kubernetes
 - Helm
-- Prometheus
-- Grafana
-- Sealed Secrets
-- AWS EBS
+
+## Roadmap (Planned)
+- [ ] Prometheus + Grafana monitoring
+- [ ] Sealed Secrets for credential management
+- [ ] AWS EBS-backed persistent storage (production deployment)
 ## Project Structure
 
 ```
 project-ares/
 ├── frontend/               # React frontend service
 ├── backend/                # Node.js backend API
-├── helm/                   # Helm charts for all services
-├── k8s/                    # Kubernetes manifests
-├── monitoring/             # Prometheus and Grafana configs
-│   ├── prometheus/
-│   └── grafana/
+├── ares-chart/                   # Helm charts for all services
 └── docker-compose.yaml     # Local development orchestration
 ```
 # 🚀 Getting Started
@@ -86,6 +75,28 @@ docker-compose up
 - 💾 Start the **MongoDB** database container.
 - 🌐 Create a isolated network (`ares-network`) for secure service communication.
 - 🚀 Ensure all services are up, running, and communicating seamlessly.
+
+## Deploying with Helm
+
+Here's how to deploy this project using Helm:
+
+1. **Validate the chart:**
+```bash
+   helm lint ./ares-chart
+```
+   This command checks the chart for errors before deploying it.
+
+2. **Install the chart:**
+```bash
+   helm install ares ./ares-chart
+```
+   This installs and deploys the chart, giving the release a name (`ares`) so it can be easily identified and managed later.
+
+3. **Verify the deployment:**
+```bash
+   kubectl get all
+```
+   This shows the status of all pods, services, and deployments, so you can confirm everything is running correctly or locate where an error occurred.
 
 ---
 

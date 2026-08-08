@@ -1,9 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: mongodb-deployment
+  name: mongodb-statefulset
 spec:
   replicas: {{.Values.mongodb.replicaCount}}
+  serviceName: mongodb-service
   selector:
     matchLabels:
       app: mongodb
@@ -18,9 +19,14 @@ spec:
           ports:
             - containerPort: {{.Values.mongodb.service.port}}
           volumeMounts:
-            - name: mongodb      
-              mountPath: {{.Values.mongodb.persistence.mountPath}}     
-      volumes:
-        - name: mongodb             
-          persistentVolumeClaim:
-            claimName: mongodb-pvc        
+            - name: mongodb-data
+              mountPath: {{.Values.mongodb.persistence.mountPath}}
+  volumeClaimTemplates:
+    - metadata:
+        name: mongodb-data
+      spec:
+        accessModes: 
+          - {{.Values.mongodb.persistence.accessMode}}
+        resources:
+          requests:
+            storage: {{.Values.mongodb.persistence.size}}

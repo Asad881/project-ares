@@ -5,6 +5,8 @@ metadata:
 spec:
   selector:
     app: mongodb
+  clusterIP: None
   ports:
     - port: {{.Values.mongodb.service.port}}
       targetPort: {{.Values.mongodb.service.port}}
+  
