@@ -124,3 +124,26 @@ docker-compose down
 - Stops and removes all running project containers.
 - Removes the created virtual network.
 - 🔒 **Data Safety:** Your database data remains completely safe as the MongoDB volume persists.
+
+
+### Ingress & Traffic Routing
+
+### Path-Based Routing Strategy
+
+External traffic entering the cluster is managed via ares-chart/templates/ingress.yaml and routed based on the following path rules: 
+
+* / → frontend-service (Serves the React client application)
+* /api → backend-service (Serves the Node.js API endpoints)
+
+Both routes utilize pathType: Prefix. This ensures all nested client-side routes (e.g., /products, /cart) and nested backend API endpoints (e.g., /api/users/123) are evaluated correctly using Longest Prefix Matching. 
+
+### Architectural Isolation
+
+* **MongoDB Service**: Excluded from the Ingress rules entirely.
+* Database traffic remains 100% internal to the cluster.
+* The backend communicates with MongoDB via standard ClusterDNS, ensuring zero external exposure.
+
+### Status & Roadmap
+
+* **Status:** Routing manifests written and validated (helm lint, helm template, helm install --dry-run=client). Inert — no Ingress Controller is running yet to parse these rules.
+* **Next Step:** Deploy the official nginx-ingress-controller as a separate Helm release to live-track and bind our routing configs to a real cloud LoadBalancer.
