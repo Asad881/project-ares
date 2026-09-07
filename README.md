@@ -1,36 +1,23 @@
-# Project Ares
+# project-ares
+Multi-Service, Three-Tier E-Commerce Web Architecture
 
-## 📋 Executive Summary
-Project Ares is a production-grade, multi-service, three-tier e-commerce architecture engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending. 
+## Demo
+[Watch Ares in action](https://youtu.be/Rfx1eItljjs)
 
-### 🚀 Currently Deployed Architecture
-* **Helm-Based Multi-Service Deployment:** Each core service (Frontend, Backend, Database) is fully modular and independently deployable via Helm Charts.
-* **Independent Scalability:** Services can be scaled horizontally and vertically based on real-time demand without impacting other tiers.
-* **StatefulSet Data Persistence:** Persistent data dynamically survives pod failures and restarts through Kubernetes StatefulSets, ensuring zero data loss.
-
----
-
-## 🎬 Demo
-See the platform running live:
-* [Watch Ares in action](https://youtu.be/Rfx1eItljjs)
-
----
-
-## 🗺️ Planned Features & Roadmap
-The following capabilities are currently under development to further enhance security and observability:
-
-* **Cryptographically Sealed Secrets:** Implementation of secure secret management to ensure production credentials remain fully protected even within public repositories.
-* **Real-Time Anomaly Detection:** Integration of Prometheus and Grafana stacks to catch performance degradation instantly, reducing the Mean Time to Recovery (MTTR) from hours to seconds.
+## Executive Summary
+Project Ares is a three-tier e-commerce architecture engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending. Each service (Frontend, Backend, Database) is independently deployable via Helm Charts, independently scalable, and independently recoverable. Persistent data survives pod failures through Kubernetes StatefulSets. External traffic is routed through an nginx Ingress Controller using path-based routing, replacing per-service exposure with a single, centralized entry point.
 
 ## Architecture Diagram
 ```mermaid
 graph TD
-    A[User Browser] --> |Sends HTTP Request| B[Load Balancer]
-    B --> |Routes Request| C[Frontend - React]
-    C --> |Sends API Request| D[Backend - Node.js]
-    D --> |Queries Data| E[Database - MongoDB]
-    E --> |Returns Response| A
+    A[User Browser] --> |Sends HTTP Request| B[Nginx Ingress Controller]
+    B --> |"/ path"| C[Frontend - React]
+    B --> |"/api path"| D[Backend - Node.js]
+    D --> |Queries Data| E[MongoDB - StatefulSet]
+    E --> |Returns Response| D
+    D --> |Returns Response| C
 ```
+
 ## Tech Stack
 **Application**
 - React
@@ -41,20 +28,22 @@ graph TD
 - Docker
 - Kubernetes
 - Helm
+- Nginx Ingress Controller
 
 ## Roadmap (Planned)
 - [ ] Prometheus + Grafana monitoring
 - [ ] Sealed Secrets for credential management
 - [ ] AWS EBS-backed persistent storage (production deployment)
+
 ## Project Structure
 
-```
 project-ares/
-├── frontend/               # React frontend service
-├── backend/                # Node.js backend API
-├── ares-chart/                   # Helm charts for all services
-└── docker-compose.yaml     # Local development orchestration
-```
+├── frontend/ # React frontend service
+├── backend/ # Node.js backend API
+├── ares-chart/ # Helm charts for all services
+└── docker-compose.yaml # Local development orchestration
+
+
 # 🚀 Getting Started
 
 ## 📋 Prerequisites
@@ -70,14 +59,14 @@ Before running this project, ensure you have the following installed on your sys
 Follow these steps to set up the project locally:
 
 1. **Clone the repository:**
-   ```bash
+```bash
    git clone https://github.com/Asad881/project-ares.git
-   ```
+```
 
 2. **Navigate to the project directory:**
-   ```bash
+```bash
    cd project-ares
-   ```
+```
 
 ---
 
@@ -92,7 +81,7 @@ docker-compose up
 **This command will automatically:**
 - 🏗️ Build the **Frontend** and **Backend** Docker images.
 - 💾 Start the **MongoDB** database container.
-- 🌐 Create a isolated network (`ares-network`) for secure service communication.
+- 🌐 Create an isolated network (`ares-network`) for secure service communication.
 - 🚀 Ensure all services are up, running, and communicating seamlessly.
 
 ## Deploying with Helm
@@ -144,25 +133,25 @@ docker-compose down
 - Removes the created virtual network.
 - 🔒 **Data Safety:** Your database data remains completely safe as the MongoDB volume persists.
 
+---
 
-### Ingress & Traffic Routing
+## Ingress & Traffic Routing
 
 ### Path-Based Routing Strategy
 
-External traffic entering the cluster is managed via ares-chart/templates/ingress.yaml and routed based on the following path rules: 
+External traffic entering the cluster is managed via `ares-chart/templates/ingress.yaml` and routed based on the following path rules:
 
-* / → frontend-service (Serves the React client application)
-* /api → backend-service (Serves the Node.js API endpoints)
+* `/` → frontend-service (Serves the React client application)
+* `/api` → backend-service (Serves the Node.js API endpoints)
 
-Both routes utilize pathType: Prefix. This ensures all nested client-side routes (e.g., /products, /cart) and nested backend API endpoints (e.g., /api/users/123) are evaluated correctly using Longest Prefix Matching. 
+Both routes use `pathType: Prefix`. This ensures all nested client-side routes (e.g., `/products`, `/cart`) and nested backend API endpoints (e.g., `/api/users/123`) are evaluated correctly using Longest Prefix Matching.
 
 ### Architectural Isolation
 
 * **MongoDB Service**: Excluded from the Ingress rules entirely.
 * Database traffic remains 100% internal to the cluster.
-* The backend communicates with MongoDB via standard ClusterDNS, ensuring zero external exposure.
+* The backend communicates with MongoDB via standard Cluster DNS, ensuring zero external exposure.
 
-### Status & Roadmap
+### Status
 
-* **Status:** Routing manifests written and validated (helm lint, helm template, helm install --dry-run=client). Inert — no Ingress Controller is running yet to parse these rules.
-* **Next Step:** Deploy the official nginx-ingress-controller as a separate Helm release to live-track and bind our routing configs to a real cloud LoadBalancer.
+**Live.** The nginx Ingress Controller is deployed and actively routing traffic to the frontend and backend services based on the path rules above.
