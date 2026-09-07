@@ -1,7 +1,26 @@
-# project-ares
-Multi-Service, Three-Tier E-Commerce Web Architecture
+# Project Ares
 
-Executive Summary: Project Ares is a production-grade, multi-service, three-tier e-commerce architecture — engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending. Each service (Frontend, Backend, Database) is independently deployable via Helm Charts, independently scalable, and independently recoverable. Persistent data survives pod failures through StatefulSets. Secrets are cryptographically sealed — safe in public repositories. Real-time anomaly detection via Prometheus and Grafana catches performance degradation before it becomes downtime — reducing mean time to recovery from hours to seconds.
+## 📋 Executive Summary
+Project Ares is a production-grade, multi-service, three-tier e-commerce architecture engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending. 
+
+### 🚀 Currently Deployed Architecture
+* **Helm-Based Multi-Service Deployment:** Each core service (Frontend, Backend, Database) is fully modular and independently deployable via Helm Charts.
+* **Independent Scalability:** Services can be scaled horizontally and vertically based on real-time demand without impacting other tiers.
+* **StatefulSet Data Persistence:** Persistent data dynamically survives pod failures and restarts through Kubernetes StatefulSets, ensuring zero data loss.
+
+---
+
+## 🎬 Demo
+See the platform running live:
+* [Watch Ares in action](https://youtu.be/Rfx1eItljjs)
+
+---
+
+## 🗺️ Planned Features & Roadmap
+The following capabilities are currently under development to further enhance security and observability:
+
+* **Cryptographically Sealed Secrets:** Implementation of secure secret management to ensure production credentials remain fully protected even within public repositories.
+* **Real-Time Anomaly Detection:** Integration of Prometheus and Grafana stacks to catch performance degradation instantly, reducing the Mean Time to Recovery (MTTR) from hours to seconds.
 
 ## Architecture Diagram
 ```mermaid

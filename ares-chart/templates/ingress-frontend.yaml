@@ -1,8 +1,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ares-ingress
+  name: ares-frontend-ingress
 spec:
+  ingressClassName: nginx
   rules:
     - http:
         paths:
@@ -14,10 +15,4 @@ spec:
               port: 
                 number: {{ .Values.frontend.service.port }}
 
-        - path: /api
-          pathType: Prefix
-          backend:
-            service:
-              name: backend-service
-              port:
-                number: {{ .Values.backend.service.port }}
+      

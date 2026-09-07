@@ -14,7 +14,7 @@ backend:
     tag: latest
     pullPolicy: IfNotPresent
   service:
-    port: 3000
+    port: 5000
   env:
   - name: MONGO_URI
     value: mongodb://ares-db:27017/ares_ecommerce
