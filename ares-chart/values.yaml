@@ -2,23 +2,21 @@ frontend:
   replicaCount: 3
   image:
     repository: shiekh664/ares-frontend
-    tag: latest
+    tag: 75e7ec9
     pullPolicy: IfNotPresent
   service:
     port: 80
-
 backend:
   replicaCount: 3
   image:
     repository: shiekh664/ares-backend
-    tag: latest
+    tag: 75e7ec9
     pullPolicy: IfNotPresent
   service:
     port: 5000
   env:
-  - name: MONGO_URI
-    value: mongodb://ares-db:27017/ares_ecommerce
-
+    - name: MONGO_URI
+      value: mongodb://ares-db:27017/ares_ecommerce
 mongodb:
   replicaCount: 1
   image:
