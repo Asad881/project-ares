@@ -1,0 +1,95 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  # Job 1: Frontend Build & Push
+  build-frontend:
+    runs-on: ubuntu-latest
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get short SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      # 🌟 HIGHLIGHT: Setup Docker Buildx (Caching aur fast build ke liye zaroori hai)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: shiekh664/ares-frontend:${{ steps.vars.outputs.sha_short }}
+          # 🌟 HIGHLIGHT: Frontend Docker Caching Enabled
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Job 2: Backend Build & Push (Runs in parallel with Frontend)
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get short SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      # 🌟 HIGHLIGHT: Setup Docker Buildx (Caching aur fast build ke liye zaroori hai)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: shiekh664/ares-backend:${{ steps.vars.outputs.sha_short }}
+          # 🌟 HIGHLIGHT: Backend Docker Caching Enabled
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Job 3: Update Helm Chart Manifests (Runs only after both builds succeed)
+  update-manifests:
+    runs-on: ubuntu-latest
+    needs: [build-frontend, build-backend]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update image tags in values.yaml
+        run: |
+          yq -i '.frontend.image.tag = "${{ needs.build-frontend.outputs.sha_short }}"' ares-chart/values.yaml
+          yq -i '.backend.image.tag = "${{ needs.build-frontend.outputs.sha_short }}"' ares-chart/values.yaml
+
+      - name: Commit and push updated tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ares-chart/values.yaml
+          git commit -m "Update image tags to ${{ needs.build-frontend.outputs.sha_short }} [skip ci]"
+          git push
