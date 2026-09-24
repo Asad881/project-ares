@@ -29,6 +29,9 @@ graph TD
 - Kubernetes
 - Helm
 - Nginx Ingress Controller
+- GitHub Actions
+- ArgoCD (GitOps)
+
 
 ## Roadmap (Planned)
 - [ ] Prometheus + Grafana monitoring
@@ -155,3 +158,30 @@ Both routes use `pathType: Prefix`. This ensures all nested client-side routes (
 ### Status
 
 **Live.** The nginx Ingress Controller is deployed and actively routing traffic to the frontend and backend services based on the path rules above.
+
+## CI/CD Pipeline
+
+```mermaid
+graph LR
+    A[Push to main] --> B[GitHub Actions: Build & Push Images]
+    B --> C[Update image tag in values.yaml]
+    C --> D[Commit back to repo]
+    D --> E[ArgoCD detects change]
+    E --> F[Auto-sync to cluster]
+```
+
+### Overview
+Every push to `main` triggers an automated build-and-deploy pipeline, following GitOps principles — Git is the single source of truth for what runs in the cluster.
+
+### Flow
+1. **Build & Push**: GitHub Actions builds Docker images for frontend and backend, tagged with the commit's short SHA, and pushes them to Docker Hub.
+2. **Tag Update**: The pipeline updates `ares-chart/values.yaml` with the new image tags.
+3. **Commit-back**: The updated `values.yaml` is committed back to the repo (with `[skip ci]` to prevent an infinite trigger loop).
+4. **Auto-sync**: ArgoCD, running inside the cluster, continuously watches the repo. On detecting the new commit, it automatically syncs the cluster to match — no manual `helm upgrade` needed.
+
+### Tools
+- **GitHub Actions** — CI: build, tag, push, commit-back
+- **ArgoCD** — CD: git-to-cluster sync, self-healing, drift correction
+
+### Status
+**Live.** Verified end-to-end with a real code change — commit to cluster deployment, fully automated.

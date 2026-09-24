@@ -21,3 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+k9_linux_amd64.deb
+k9.tar.gz
+wget-log
+index.html.1
