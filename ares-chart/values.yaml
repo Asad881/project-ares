@@ -2,7 +2,7 @@ frontend:
   replicaCount: 3
   image:
     repository: shiekh664/ares-frontend
-    tag: aeca4ef
+    tag: 9758c11
     pullPolicy: IfNotPresent
   service:
     port: 80
@@ -10,7 +10,7 @@ backend:
   replicaCount: 3
   image:
     repository: shiekh664/ares-backend
-    tag: aeca4ef
+    tag: 9758c11
     pullPolicy: IfNotPresent
   service:
     port: 5000
