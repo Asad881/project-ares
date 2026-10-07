@@ -1,6 +1,6 @@
 services:
   ares-db:
-    image: mongo:latest
+    image: mongo:8.0
     container_name: ares-db
     volumes:
       - mongo_data:/data/db
