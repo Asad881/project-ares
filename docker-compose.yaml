@@ -1,6 +1,7 @@
 services:
   ares-db:
     image: mongo:8.0
+    restart: unless-stopped
     container_name: ares-db
     volumes:
       - mongo_data:/data/db
@@ -9,6 +10,7 @@ services:
   
   ares_backend:
     build: ./backend
+    restart: unless-stopped
     container_name: ares_backend
     ports:
       - "5000:5000"
@@ -21,6 +23,7 @@ services:
 
   ares_frontend:
     build: ./frontend 
+    restart: unless-stopped
     container_name: ares_frontend
     ports:
       - "3000:80"
