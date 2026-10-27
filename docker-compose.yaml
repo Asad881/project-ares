@@ -7,7 +7,12 @@ services:
       - mongo_data:/data/db
     networks:
       - ares_network
-  
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   ares_backend:
     build: ./backend
     restart: unless-stopped
