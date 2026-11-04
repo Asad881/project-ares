@@ -1,6 +1,6 @@
 services:
   ares-db:
-    image: mongo:6.0
+    image: mongo:9.0.4
     restart: unless-stopped
     container_name: ares-db
     volumes:
