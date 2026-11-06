@@ -2,8 +2,8 @@
 Multi-Service, Three-Tier E-Commerce Web Architecture
 
 ## Demo
-- **Live (AWS EC2 + Nginx + HTTPS):** https://asad-ares.duckdns.org  ·  API health: https://asad-ares.duckdns.org/api/
 - **Video:** [Watch Ares in action](https://youtu.be/Rfx1eItljjs)
+- **Live demo:** available on request. The EC2 server is started on demand to keep costs low.
 
 ## Executive Summary
 Project Ares is a three-tier e-commerce architecture engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending.
@@ -164,7 +164,7 @@ docker compose down
 
 ## 🌍 Production Deployment (AWS EC2 + Nginx + HTTPS)
 
-Live at **https://asad-ares.duckdns.org**.
+Deployed and verified on AWS EC2. The server is started on demand for live demos.
 
 ### Server
 | Item | Value |
@@ -201,8 +201,8 @@ Live at **https://asad-ares.duckdns.org**.
    ```
 
 ### Verified
-- `https://asad-ares.duckdns.org` loads with a valid certificate; `http://` redirects to `https://`
-- `https://asad-ares.duckdns.org/api/` → `{"status":"Ares Backend Running","database":"Connected"}`
+- The domain loads over HTTPS with a valid certificate; `http://` redirects to `https://`
+- `/api/` over HTTPS → `{"status":"Ares Backend Running","database":"Connected"}`
 - `http://<server-ip>:3000` and `:5000` time out from outside
 - After a server reboot all 3 containers come back by themselves (`restart: unless-stopped`) and the database data is still there (named volume)
 - `certbot renew --dry-run` passes
