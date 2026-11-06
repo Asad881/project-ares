@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
     container_name: ares_backend
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     environment:
       - MONGO_URI=mongodb://ares-db:27017/ares_ecomerce
     depends_on:
@@ -27,13 +27,11 @@ services:
       - ares_network
 
   ares_frontend:
-    build: ./frontend 
+    build: ./frontend
     restart: unless-stopped
     container_name: ares_frontend
     ports:
-      - "3000:80"
-    environment:
-      - REACT_APP_BACKEND_URL=http://localhost:5000
+      - "127.0.0.1:3000:80"
     networks:
       - ares_network
 
