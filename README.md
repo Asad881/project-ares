@@ -2,12 +2,31 @@
 Multi-Service, Three-Tier E-Commerce Web Architecture
 
 ## Demo
-[Watch Ares in action](https://youtu.be/Rfx1eItljjs)
+- **Video:** [Watch Ares in action](https://youtu.be/Rfx1eItljjs)
+- **Live demo:** available on request. The EC2 server is started on demand to keep costs low.
 
 ## Executive Summary
-Project Ares is a three-tier e-commerce architecture engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending. Each service (Frontend, Backend, Database) is independently deployable via Helm Charts, independently scalable, and independently recoverable. Persistent data survives pod failures through Kubernetes StatefulSets. External traffic is routed through an nginx Ingress Controller using path-based routing, replacing per-service exposure with a single, centralized entry point.
+Project Ares is a three-tier e-commerce architecture engineered to eliminate business loss caused by cascading failures and wasted infrastructure spending.
+
+It runs in two ways:
+1. **Production on a single VPS** — AWS EC2 (Ubuntu 26.04 LTS) with Docker Compose, Nginx reverse proxy, a domain and a free Let's Encrypt HTTPS certificate. Only ports 22/80/443 are open; the app containers are not reachable from the internet directly. See [Production Deployment](#-production-deployment-aws-ec2--nginx--https).
+2. **Kubernetes (minikube)** — Helm chart, StatefulSet, Ingress and a GitOps CI/CD pipeline (GitHub Actions + ArgoCD).
+
+In the Kubernetes setup, each service (Frontend, Backend, Database) is independently deployable via Helm Charts, independently scalable, and independently recoverable. Persistent data survives pod failures through Kubernetes StatefulSets. External traffic is routed through an nginx Ingress Controller using path-based routing, replacing per-service exposure with a single, centralized entry point.
 
 ## Architecture Diagram
+
+### Production (AWS EC2)
+```mermaid
+graph TD
+    U[User Browser] -->|HTTPS 443| N[Nginx on EC2 + Let's Encrypt cert]
+    U -.->|HTTP 80 redirected to HTTPS| N
+    N -->|"/ to 127.0.0.1:3000"| F[Frontend container - React]
+    N -->|"/api/ to 127.0.0.1:5000"| B[Backend container - Node.js]
+    B -->|ares_network| M[(MongoDB 9.0.4 container + named volume)]
+```
+
+### Kubernetes (minikube)
 ```mermaid
 graph TD
     A[User Browser] --> |Sends HTTP Request| B[Nginx Ingress Controller]
@@ -25,7 +44,9 @@ graph TD
 - MongoDB
 
 **Infrastructure**
-- Docker
+- Docker / Docker Compose
+- AWS EC2, Elastic IP, Security Groups
+- Nginx (reverse proxy) + Certbot (Let's Encrypt HTTPS)
 - Kubernetes
 - Helm
 - Nginx Ingress Controller
@@ -44,7 +65,8 @@ project-ares/
 ├── frontend/ # React frontend service
 ├── backend/ # Node.js backend API
 ├── ares-chart/ # Helm charts for all services
-└── docker-compose.yaml # Local development orchestration
+├── deploy/nginx/ares.conf # Nginx reverse proxy config for the VPS
+└── docker-compose.yaml # Container setup (local + VPS)
 
 
 # 🚀 Getting Started
@@ -78,13 +100,13 @@ Follow these steps to set up the project locally:
 Start all the services with a single command:
 
 ```bash
-docker-compose up
+docker compose up -d --build
 ```
 
 **This command will automatically:**
 - 🏗️ Build the **Frontend** and **Backend** Docker images.
 - 💾 Start the **MongoDB** database container.
-- 🌐 Create an isolated network (`ares-network`) for secure service communication.
+- 🌐 Create an isolated network (`ares_network`) for secure service communication.
 - 🚀 Ensure all services are up, running, and communicating seamlessly.
 
 ## Deploying with Helm
@@ -119,7 +141,9 @@ Once all containers are successfully running, you can access them via:
 | :--- | :--- |
 | **Frontend (React)** | 💻 [http://localhost:3000](http://localhost:3000) |
 | **Backend API** | ⚙️ [http://localhost:5000](http://localhost:5000) |
-| **MongoDB** | 🗄️ `localhost:27017` |
+| **MongoDB** | 🗄️ Internal only (`ares-db:27017` on `ares_network`, not published to the host) |
+
+Ports are published on `127.0.0.1` only, so on a server they are reachable by Nginx but not from the internet.
 
 ---
 
@@ -128,7 +152,7 @@ Once all containers are successfully running, you can access them via:
 To stop all running containers and clean up the environment, run:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 **What this does:**
@@ -138,7 +162,59 @@ docker-compose down
 
 ---
 
-## Ingress & Traffic Routing
+## 🌍 Production Deployment (AWS EC2 + Nginx + HTTPS)
+
+Deployed and verified on AWS EC2. The server is started on demand for live demos.
+
+### Server
+| Item | Value |
+| :--- | :--- |
+| Instance | AWS EC2 `t3.small` (2 GB RAM), 20 GB gp3 disk |
+| OS | Ubuntu 26.04 LTS |
+| Database image | `mongo:9.0.4` (pinned, persistent named volume `mongo_data`) |
+| Public IP | Elastic IP (stays the same across stop/start) |
+| Domain | `asad-ares.duckdns.org` (DuckDNS A record → Elastic IP) |
+| Security group | 22 (SSH), 80, 443 — ports 3000/5000/27017 are **not** open |
+| HTTPS | Let's Encrypt via Certbot, auto-renew timer, HTTP → HTTPS redirect |
+
+### Steps
+1. **Launch the server** — EC2 Ubuntu 26.04 LTS, security group with 22 (SSH, best limited to your IP), 80, 443.
+2. **Fixed IP + domain** — allocate an Elastic IP, associate it with the instance, point the DuckDNS domain to it. Check: `nslookup asad-ares.duckdns.org`.
+3. **Install Docker and run the app**
+   ```bash
+   git clone https://github.com/Asad881/project-ares.git && cd project-ares
+   docker compose up -d --build
+   curl localhost:5000      # {"status":"Ares Backend Running","database":"Connected"}
+   ```
+4. **Nginx reverse proxy**
+   ```bash
+   sudo apt install -y nginx
+   sudo cp deploy/nginx/ares.conf /etc/nginx/sites-available/ares
+   sudo ln -s /etc/nginx/sites-available/ares /etc/nginx/sites-enabled/ares
+   sudo nginx -t && sudo systemctl reload nginx
+   ```
+5. **HTTPS**
+   ```bash
+   sudo apt install -y certbot python3-certbot-nginx
+   sudo certbot --nginx -d asad-ares.duckdns.org
+   sudo certbot renew --dry-run
+   ```
+
+### Verified
+- The domain loads over HTTPS with a valid certificate; `http://` redirects to `https://`
+- `/api/` over HTTPS → `{"status":"Ares Backend Running","database":"Connected"}`
+- `http://<server-ip>:3000` and `:5000` time out from outside
+- After a server reboot all 3 containers come back by themselves (`restart: unless-stopped`) and the database data is still there (named volume)
+- `certbot renew --dry-run` passes
+
+### Updating the app on the server
+```bash
+cd project-ares && git pull && docker compose up -d --build
+```
+
+---
+
+## Ingress & Traffic Routing (Kubernetes)
 
 ### Path-Based Routing Strategy
 
@@ -157,7 +233,7 @@ Both routes use `pathType: Prefix`. This ensures all nested client-side routes (
 
 ### Status
 
-**Live.** The nginx Ingress Controller is deployed and actively routing traffic to the frontend and backend services based on the path rules above.
+**Verified on minikube.** The nginx Ingress Controller was deployed and routing traffic to the frontend and backend services based on the path rules above.
 
 ## CI/CD Pipeline
 
@@ -184,4 +260,4 @@ Every push to `main` triggers an automated build-and-deploy pipeline, following 
 - **ArgoCD** — CD: git-to-cluster sync, self-healing, drift correction
 
 ### Status
-**Live.** Verified end-to-end with a real code change — commit to cluster deployment, fully automated.
+**Verified on minikube.** Verified end-to-end with a real code change — commit to cluster deployment, fully automated.
