@@ -20,7 +20,7 @@ services:
     ports:
       - "127.0.0.1:5000:5000"
     environment:
-      - MONGO_URI=mongodb://localhost:27017/ares_ecomerce
+      - MONGO_URI=mongodb://ares-db:27017/ares_ecomerce
     depends_on:
       - ares-db
     networks:
